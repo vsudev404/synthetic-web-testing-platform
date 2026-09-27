@@ -2,6 +2,27 @@
 
 Synthetic Web User Testing Platform is a monorepo for launching controlled synthetic browser sessions against web apps in a secure, authorized testing environment. It combines a FastAPI backend, a Next.js UI, Redis job orchestration, PostgreSQL persistence, and Playwright-based worker execution.
 
+## One-step install (start the full stack)
+
+If you want to run the entire platform locally with one command, use the provided Makefile or scripts. This will build and start PostgreSQL, Redis, the backend API, the frontend dashboard, and a worker, then wait for the backend to report healthy.
+
+- Linux / macOS
+  - make start
+  - or ./scripts/start.sh
+
+- Windows (PowerShell)
+  - .\scripts\start.ps1
+
+What this does:
+- Copies `.env.example` to `.env` if no `.env` exists
+- Runs `docker compose up --build -d` to build and start Postgres, Redis, backend, frontend, and worker
+- Waits for the backend health endpoint (`http://localhost:8000/health`) to respond
+
+Troubleshooting
+- Check logs with `make logs` or `docker compose logs -f`
+- Stop the stack with `make stop` or `./scripts/stop.sh`
+
+
 ## Overview
 
 This platform helps teams:
@@ -49,8 +70,16 @@ cp .env.example .env
 
 ### 2. Start the full stack
 
+(Short form — uses the one-step install scripts)
+
 ```bash
-docker compose up --build
+make start
+```
+
+or
+
+```bash
+./scripts/start.sh
 ```
 
 This starts:
@@ -153,4 +182,3 @@ This project is licensed under the MIT License. See `LICENSE` for details.
 ## Support
 
 For questions, operational setup, and deployment guidance, open an issue in this repository.
-
