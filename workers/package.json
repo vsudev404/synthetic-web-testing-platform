@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "start": "node worker.js"
+  },
+  "dependencies": {
+    "redis": "^4.9.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
