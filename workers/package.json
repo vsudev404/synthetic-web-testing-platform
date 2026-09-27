@@ -2,15 +2,7 @@
   "name": "synthetic-web-testing-platform-worker",
   "version": "1.0.0",
   "private": true,
-  "scripts": {
-    "test": "playwright test",
-    "start": "node worker.js"
-  },
-  "dependencies": {
-    "redis": "^4.9.0"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.49.1",
-    "typescript": "^5.6.3"
-  }
+  "scripts": { "test": "playwright test", "start": "node worker.js" },
+  "dependencies": { "redis": "4.7.0" },
+  "devDependencies": { "@playwright/test": "1.49.1", "typescript": "5.6.3" }
 }

@@ -1,18 +1,15 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
     app_name: str = "synthetic-web-testing-platform"
-    postgres_db: str = "synthetic_platform"
-    postgres_user: str = "platform"
-    postgres_password: str = "platform"
-    postgres_host: str = "postgres"
-    postgres_port: int = 5432
     redis_url: str = "redis://redis:6379/0"
-    jwt_secret: str = "change-me-in-production"
-
-    class Config:
-        env_file = ".env"
+    max_visitors_per_job: int = 100
+    allowed_target_domains: list[str] = []
+    allow_private_targets: bool = False
+    cors_origins: list[str] = ["http://localhost:3000"]
+    log_level: str = "INFO"
 
 
 settings = Settings()
