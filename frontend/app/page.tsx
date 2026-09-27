@@ -1,66 +1,91 @@
-const jobs = [
-  { id: 'job-101', status: 'running', worker: 'playwright-eu-01' },
-  { id: 'job-102', status: 'queued', worker: 'playwright-us-02' },
-  { id: 'job-103', status: 'complete', worker: 'playwright-us-01' },
-];
+'use client'
+
+import React, { useState } from 'react';
 
 export default function Home() {
+  const [targetUrl, setTargetUrl] = useState('https://example.com');
+  const [visitors, setVisitors] = useState(1);
+  const [message, setMessage] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [jobStatus, setJobStatus] = useState<any>(null);
+
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+  async function submitJob(e: React.FormEvent) {
+    e.preventDefault();
+    setMessage('Submitting job...');
+    setJobStatus(null);
+    try {
+      const res = await fetch(`${apiBase}/api/jobs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_url: targetUrl, visitors: Number(visitors) }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setJobId(data.job_id);
+        setMessage('Job queued: ' + data.job_id);
+      } else {
+        setMessage('Error: ' + JSON.stringify(data));
+      }
+    } catch (err: any) {
+      setMessage('Request failed: ' + String(err));
+    }
+  }
+
+  async function pollStatus() {
+    if (!jobId) return;
+    try {
+      const res = await fetch(`${apiBase}/api/jobs/${jobId}`);
+      const data = await res.json();
+      setJobStatus(data);
+    } catch (err: any) {
+      setMessage('Status request failed: ' + String(err));
+    }
+  }
+
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: 1100, margin: '0 auto' }}>
+    <main style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: 900, margin: '0 auto' }}>
       <h1>Synthetic Web Testing Platform</h1>
-      <p>
-        Launch controlled synthetic browser sessions for authorized testing across your web product.
-      </p>
+      <p>Launch controlled synthetic browser sessions for authorized testing across your web product.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', margin: '2rem 0' }}>
-        <StatCard label="Workers" value="12" />
-        <StatCard label="Queued" value="3" />
-        <StatCard label="Running" value="2" />
-        <StatCard label="Success Rate" value="98.4%" />
-      </div>
+      <section style={{ marginTop: '1.5rem', padding: '1rem', border: '1px solid #eee', borderRadius: 8 }}>
+        <h2>Launch a synthetic visitor run</h2>
+        <form onSubmit={submitJob}>
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ display: 'block', marginBottom: 6 }}>Target URL</label>
+            <input
+              value={targetUrl}
+              onChange={(e) => setTargetUrl(e.target.value)}
+              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ddd' }}
+            />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ display: 'block', marginBottom: 6 }}>Number of visitors</label>
+            <input
+              type="number"
+              min={1}
+              value={visitors}
+              onChange={(e) => setVisitors(Number(e.target.value))}
+              style={{ width: 120, padding: 8, borderRadius: 6, border: '1px solid #ddd' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="submit" style={{ padding: '0.5rem 1rem' }}>Start</button>
+            <button type="button" onClick={pollStatus} style={{ padding: '0.5rem 1rem' }} disabled={!jobId}>
+              Check Status
+            </button>
+          </div>
+        </form>
 
-      <section>
-        <h2>Latest Jobs</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '0.75rem' }}>Job</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '0.75rem' }}>Worker</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '0.75rem' }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {jobs.map((job) => (
-              <tr key={job.id}>
-                <td style={{ padding: '0.75rem', borderBottom: '1px solid #eee' }}>{job.id}</td>
-                <td style={{ padding: '0.75rem', borderBottom: '1px solid #eee' }}>{job.worker}</td>
-                <td style={{ padding: '0.75rem', borderBottom: '1px solid #eee' }}>
-                  <span style={{
-                    display: 'inline-block',
-                    padding: '0.25rem 0.6rem',
-                    borderRadius: '999px',
-                    backgroundColor: job.status === 'complete' ? '#d1fae5' : job.status === 'running' ? '#dbeafe' : '#fef3c7',
-                    color: '#111827',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                  }}>
-                    {job.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ marginTop: 12 }}>
+          {message && <div style={{ marginBottom: 8 }}>{message}</div>}
+          {jobStatus && (
+            <pre style={{ background: '#fbfbfb', padding: 12, borderRadius: 6 }}>{JSON.stringify(jobStatus, null, 2)}</pre>
+          )}
+        </div>
       </section>
-    </main>
-  );
-}
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '1rem', background: '#f9fafb' }}>
-      <div style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.5rem' }}>{label}</div>
-      <div style={{ fontSize: '1.8rem', fontWeight: 700 }}>{value}</div>
-    </div>
+    </main>
   );
 }
